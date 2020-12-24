@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MyAccessiblityServ</string>
+    <string name="access_desc">哈哈哈</string>
+    <string name="to_set_access">设置辅助功能</string>
+</resources>
