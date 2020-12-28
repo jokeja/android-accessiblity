@@ -40,12 +40,12 @@ open class MainActivity : Activity() {
             }
             Log.e("videoET!.text",videoMis)
             Log.e("liveET!.text",liveMis)
-            SharePrefUtil.putLongValue(applicationContext,"videoS",videoMis.toLong())
-            SharePrefUtil.putLongValue(applicationContext,"liveS",liveMis.toLong())
+            SharePrefUtil.putLongValue("videoS",videoMis.toLong())
+            SharePrefUtil.putLongValue("liveS",liveMis.toLong())
             Toast.makeText(applicationContext,"保存成功",Toast.LENGTH_SHORT).show()
         })
-        this.videoET!!.setText(SharePrefUtil.getLongValue(applicationContext,"videoS").toString(),TextView.BufferType.NORMAL)
-        this.liveET!!.setText(SharePrefUtil.getLongValue(applicationContext,"liveS").toString(),TextView.BufferType.NORMAL)
+        this.videoET!!.setText(SharePrefUtil.getLongValue("videoS").toString(),TextView.BufferType.NORMAL)
+        this.liveET!!.setText(SharePrefUtil.getLongValue("liveS").toString(),TextView.BufferType.NORMAL)
     }
 
     override fun onResume() {
