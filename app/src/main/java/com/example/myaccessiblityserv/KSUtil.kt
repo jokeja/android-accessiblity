@@ -17,7 +17,6 @@ class KSUtil {
     private var context: Context = App.instance()
     private var accessibilityService: AccessibilityService? = null
     private var handler = Handler()
-    private var autoScrolling = false
     private var execMissionType = MissionType_SCROLL
     private val scrollRunnable = object : Runnable {
 
@@ -28,6 +27,7 @@ class KSUtil {
 
     companion object {
         private var instance: KSUtil? = null
+        private var autoScrolling = false
         fun getInstance(accessibilityService: AccessibilityService): KSUtil {
             if (instance == null) {
                 instance = KSUtil()
@@ -35,14 +35,15 @@ class KSUtil {
             }
             return instance!!
         }
+        fun restartMission(){
+            autoScrolling = false
+        }
     }
 
     fun init() {
-
     }
 
     fun stop() {
-        this.autoScrolling = false
     }
 
     fun execScrollMission() {
@@ -63,6 +64,11 @@ class KSUtil {
             var nodeList = rootWindow.findAccessibilityNodeInfosByText("说点什么")
             if (nodeList != null && nodeList.size > 0) {//是否是直播页面 30秒滑屏
                 delayMis = SharePrefUtil.getLongValue("liveS")
+                val liveCountDownNode = AccesNodeUtil.findNodeById(rootWindow,1,"com.kuaishou.nebula:id/award_count_down_text")
+                if(liveCountDownNode==null){
+                    delayMis = 3
+                    accessibilityService!!.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+                }
             }
         }
         return delayMis * 1000
@@ -98,13 +104,10 @@ class KSUtil {
                 return true
             } else {
                 val t_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "明日再来")
-                val l_node = AccesNodeUtil.findAllNodesByText(rootWindow, 1, "看直播")
+                val l_node = AccesNodeUtil.findAllNodesByEqualsText(rootWindow, 1, "看直播")
                 val l_succes_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "今日已成功领取直播奖励金币")
                 if (l_succes_node == null && l_node != null && l_node.size > 0) {
                     l_node[1].performAction(AccessibilityNodeInfo.ACTION_CLICK)
-//                    handler.postDelayed(Runnable {
-//                        analyLiveWindows()
-//                    },5)
                     return true
                 }
                 if (t_node != null) {
@@ -123,18 +126,18 @@ class KSUtil {
         val node = AccesNodeUtil.findNodeByText(rootWindow, 1, "继续观看")
         if (node != null) {
             AccesNodeUtil.tapNode(accessibilityService!!, node)
+            handler.postDelayed(Runnable {
+                checkGuangGaoWindow()
+            }, 32 * 1000)
         } else {
             accessibilityService!!.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
         }
-        handler.postDelayed(Runnable {
-            checkGuangGaoWindow()
-        }, 32 * 1000)
     }
 
     private fun startScroll() {
         Log.e("------step--------", "2222222222222222222222222222222222222")
         val widthHeight = ScreenUtils.GetWidthAndHeight(this.context!!)
-        this.autoScrolling = true
+        autoScrolling = true
         var path = Path()
         path.moveTo((widthHeight.first / 2f), widthHeight.second - 150f);//设置Path的起点
         path.lineTo((widthHeight.first / 2f), 150f);
@@ -145,8 +148,8 @@ class KSUtil {
                 Log.e("------step--------", "66666666666666 66666666666666666666666666")
                 handler.postDelayed(scrollRunnable, 800)
             }
-
             override fun onCancelled(gestureDescription: GestureDescription) {
+                autoScrolling = false
                 Log.e("------step--------", "7777777777777777777777777777777777777777")
             }
         }

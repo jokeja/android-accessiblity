@@ -38,7 +38,14 @@
         app:layout_constraintEnd_toEndOf="@id/video_et"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/video_et" />
-
+    <Button
+        android:id="@+id/ks_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="重启快手"
+        app:layout_constraintBottom_toBottomOf="@id/live_et"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
     <Button
         android:id="@+id/confirm_button"
         android:layout_width="wrap_content"

@@ -39,7 +39,7 @@ class AccesNodeUtil {
                     if (showLog) {
                         Log.e("" + space + "、child==", child.toString())
                     }
-                    if (text != null && child.text != null && child.text == (text!!)) {
+                    if (text != null && child.text != null && child.text.contains(text!!)) {
                         if (showLog) {
                             Log.e("" + space + "、parentNode==", parentNode.toString())
                         }
@@ -55,7 +55,7 @@ class AccesNodeUtil {
             return result
         }
 
-        fun findAllNodesByText(
+        fun findAllNodesByEqualsText(
             parentNode: AccessibilityNodeInfo,
             space: Int,
             text: String?,
@@ -74,7 +74,7 @@ class AccesNodeUtil {
                     if (text != null && child.text != null && child.text == (text!!)) {
                         result.add(child)
                     } else if (child.childCount > 0) {
-                        result.addAll(findAllNodesByText(child, space + 1, text, showLog))
+                        result.addAll(findAllNodesByEqualsText(child, space + 1, text, showLog))
                     }
                 }
             }

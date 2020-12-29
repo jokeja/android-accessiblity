@@ -51,5 +51,10 @@ class SharePrefUtil {
             val date = format.format(Date())+"_FULI_MISSION"
             this.putBooleanValue(date,true)
         }
+        fun fuLiDailyMissionBegin(){
+            val format = SimpleDateFormat( "yyyy-MM-dd" )
+            val date = format.format(Date())+"_FULI_MISSION"
+            this.putBooleanValue(date,false)
+        }
     }
 }

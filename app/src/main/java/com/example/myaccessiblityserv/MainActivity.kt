@@ -18,13 +18,14 @@ open class MainActivity : Activity() {
     private var videoET: EditText? = null
     private var liveET: EditText? = null
     private var confirmBtn: Button? = null
+    private var ksBtn:Button? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         this.setAccBtn = this.findViewById<Button>(R.id.set_button)
         this.confirmBtn = this.findViewById<Button>(R.id.confirm_button)
         this.videoET = this.findViewById<EditText>(R.id.video_et)
-
+        this.ksBtn = this.findViewById(R.id.ks_button)
         this.liveET = this.findViewById<EditText>(R.id.live_et)
         this.confirmBtn!!.setOnClickListener(View.OnClickListener {
             v:View ->
@@ -43,6 +44,11 @@ open class MainActivity : Activity() {
             SharePrefUtil.putLongValue("videoS",videoMis.toLong())
             SharePrefUtil.putLongValue("liveS",liveMis.toLong())
             Toast.makeText(applicationContext,"保存成功",Toast.LENGTH_SHORT).show()
+        })
+        this.ksBtn!!.setOnClickListener(View.OnClickListener {
+            v:View ->
+            SharePrefUtil.fuLiDailyMissionBegin()
+            KSUtil.restartMission()
         })
         this.videoET!!.setText(SharePrefUtil.getLongValue("videoS").toString(),TextView.BufferType.NORMAL)
         this.liveET!!.setText(SharePrefUtil.getLongValue("liveS").toString(),TextView.BufferType.NORMAL)

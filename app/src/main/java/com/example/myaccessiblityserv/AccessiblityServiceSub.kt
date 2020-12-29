@@ -27,7 +27,6 @@ class AccessiblityServiceSub : AccessibilityService()  {
     override fun onCreate() {
         super.onCreate()
         KSUtil.getInstance(this).init()
-        this.serviceInfo
 //        startForeground()
     }
     override fun onInterrupt() {

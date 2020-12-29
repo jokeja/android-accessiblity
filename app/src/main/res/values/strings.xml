@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyAccessiblityServ</string>
-    <string name="access_desc">哈哈哈</string>
+    <string name="app_name">滑屏助手</string>
+    <string name="access_desc">需确保应用不被系统杀死</string>
     <string name="to_set_access">设置辅助功能</string>
 </resources>
