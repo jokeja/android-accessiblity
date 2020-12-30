@@ -60,6 +60,7 @@ class KSUtil {
         }
     }
 
+    // 获取滑屏间隔
     private fun scrollMissionTime(): Long {
         val rootWindow = this.accessibilityService!!.rootInActiveWindow
         var delayMis = 1L
@@ -82,7 +83,7 @@ class KSUtil {
         }
         return delayMis * 1000
     }
-
+    // 是否是视频或者直播页面
     private fun canScroll(): Boolean {
         val rootWindow = this.accessibilityService!!.rootInActiveWindow
         if (rootWindow != null) {
@@ -97,13 +98,17 @@ class KSUtil {
         AccesNodeUtil.logAllNodes(rootWindow, "@", null)
     }
 
+    // 做每日任务
+    // return true 标识可以做任务
     private fun execDailyMission(): Boolean {
         val rootWindow = this.accessibilityService!!.rootInActiveWindow
         if (rootWindow != null) {
+            // 检测是否是任务主页面
             val zq_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "日常任务")
             if (zq_node == null) {
                 return false
             }
+            // 看广告
             val fuli_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "福利")
             if (fuli_node != null) {
                 fuli_node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
@@ -112,6 +117,7 @@ class KSUtil {
                 }, 32 * 1000)
                 return true
             } else {
+                // 看直播
                 val l_node = AccesNodeUtil.findAllNodesByEqualsText(rootWindow, 1, "看直播")
                 val l_succes_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "今日已成功领取直播奖励金币")
                 if (l_succes_node == null && l_node != null && l_node.size > 0) {
@@ -121,7 +127,7 @@ class KSUtil {
                 // 宝箱node
                 val tb_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "treasurebox")
                 val tb_opend_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "开宝箱奖励")
-                // 宝箱已经点击
+                // 宝箱是否已点击
                 if (tb_opend_node != null) {
                     val tb_opend_more_vedio_node =
                         AccesNodeUtil.findNodeByText(rootWindow, 1, "看精彩视频赚更多")
@@ -136,16 +142,19 @@ class KSUtil {
                         return true
                     }
                 }
+                // 未点击宝箱分析宝箱是否可以点击
                 if (tb_node != null) {
                     val tb_count_down_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "分")
                     if (tb_count_down_node == null) {
                         GestureDescHelper.tapNode(this.accessibilityService!!, tb_node)
                         val tb_t_node = AccesNodeUtil.findNodeByText(tb_node.parent, 1, "明日再来")
+                        // 宝箱任务未完成
                         if(tb_t_node==null){
                             return true
                         }
                         boxCanClickTime = DateUtil.getTodayEnd().time
                     } else {
+                        // 可以点击则分析宝箱的倒计时
                         val minute = tb_count_down_node.text.substring(0, 2).toInt()
                         val second = tb_count_down_node.text.substring(3, 5).toInt()
                         boxCanClickTime = DateUtil.nowAdd(minute,second).time
@@ -165,6 +174,7 @@ class KSUtil {
         return false
     }
 
+//检查广告页面是否可以回退
     private fun checkGuangGaoWindow() {
         val rootWindow = accessibilityService!!.rootInActiveWindow
         val node = AccesNodeUtil.findNodeByText(rootWindow, 1, "继续观看")
@@ -181,14 +191,15 @@ class KSUtil {
     private fun execMissions() {
         autoScrolling = true
         val rootWindow = accessibilityService!!.rootInActiveWindow
-        var delay = scrollMissionTime()
         if (execDailyMission()) {
             handler.postDelayed(missionRunnable, 800)
         } else if (canScroll()) {
+            var delay = scrollMissionTime()
             handler.postDelayed(Runnable {
+                // 应该检测当天是否可以点击福利、广告等按钮
                 if (SharePrefUtil.autoDailyMission() && (!SharePrefUtil.fuLiDailyMissionIsFinished() || System.currentTimeMillis() >= boxCanClickTime)) {
                     Log.e("====================================", "++++++++++++++++")
-                    // 应该检测当天是否可以点击福利、广告等按钮
+                    // 获取视频页面的每日任务按钮
                     val dailyNode =
                         AccesNodeUtil.findNodeById(
                             rootWindow!!,
@@ -201,7 +212,6 @@ class KSUtil {
                         return@Runnable
                     }
                 }
-
                 GestureDescHelper.scrollNode(accessibilityService!!,
                     { gestureDescription: GestureDescription ->
                         handler.postDelayed(missionRunnable, 800)
