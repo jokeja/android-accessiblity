@@ -71,6 +71,13 @@ class AccesNodeUtil {
                     if (showLog) {
                         Log.e("" + space + "、child==", child.toString())
                     }
+                    if(text==null){
+                        result.add(child)
+                        if (child.childCount > 0) {
+                            result.addAll(findAllNodesByEqualsText(child, space + 1, text, showLog))
+                        }
+                        continue
+                    }
                     if (text != null && child.text != null && child.text == (text!!)) {
                         result.add(child)
                     } else if (child.childCount > 0) {
@@ -112,33 +119,6 @@ class AccesNodeUtil {
                 }
             }
             return result
-        }
-
-        fun tapNode(service: AccessibilityService, parentNode: AccessibilityNodeInfo) {
-
-            var path = Path()
-            val rect = Rect()
-            parentNode.getBoundsInScreen(rect)
-            path.moveTo(
-                Math.abs(rect!!.centerX().toFloat()),
-                rect!!.centerY().toFloat()
-            );//设置Path的起点
-            var builder = GestureDescription.Builder()
-            var stroke = GestureDescription.StrokeDescription(path, 0, 300, false)
-            var callback = object : AccessibilityService.GestureResultCallback() {
-                override fun onCompleted(gestureDescription: GestureDescription) {
-                    Log.e("------step--------", gestureDescription.toString())
-                }
-
-                override fun onCancelled(gestureDescription: GestureDescription) {
-                    Log.e("------step--------", gestureDescription.toString())
-                }
-            }
-            var dispatchGestureresult = service.dispatchGesture(
-                builder.addStroke(stroke).build(),
-                callback,
-                null
-            )
         }
     }
 }

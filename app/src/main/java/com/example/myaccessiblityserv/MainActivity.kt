@@ -8,10 +8,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 
 open class MainActivity : Activity() {
     private var setAccBtn:Button? = null
@@ -19,6 +16,7 @@ open class MainActivity : Activity() {
     private var liveET: EditText? = null
     private var confirmBtn: Button? = null
     private var ksBtn:Button? = null
+    private var dailySwitch:Switch? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -27,6 +25,7 @@ open class MainActivity : Activity() {
         this.videoET = this.findViewById<EditText>(R.id.video_et)
         this.ksBtn = this.findViewById(R.id.ks_button)
         this.liveET = this.findViewById<EditText>(R.id.live_et)
+        this.dailySwitch = this.findViewById(R.id.auto_daily_switch)
         this.confirmBtn!!.setOnClickListener(View.OnClickListener {
             v:View ->
             val videoMis = videoET!!.text.toString()
@@ -52,6 +51,13 @@ open class MainActivity : Activity() {
         })
         this.videoET!!.setText(SharePrefUtil.getLongValue("videoS").toString(),TextView.BufferType.NORMAL)
         this.liveET!!.setText(SharePrefUtil.getLongValue("liveS").toString(),TextView.BufferType.NORMAL)
+
+        this.dailySwitch!!.setOnCheckedChangeListener(CompoundButton.OnCheckedChangeListener{
+            buttonView:CompoundButton,isChecked:Boolean ->
+            SharePrefUtil.putAutoDailyMission(isChecked)
+        })
+        this.dailySwitch!!.isChecked = SharePrefUtil.autoDailyMission()
+
     }
 
     override fun onResume() {

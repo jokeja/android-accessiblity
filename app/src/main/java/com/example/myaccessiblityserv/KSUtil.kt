@@ -7,6 +7,7 @@ import android.graphics.Path
 import android.os.Handler
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
+import java.util.*
 
 class KSUtil {
     private val MissionType_SCROLL = 1
@@ -18,16 +19,19 @@ class KSUtil {
     private var accessibilityService: AccessibilityService? = null
     private var handler = Handler()
     private var execMissionType = MissionType_SCROLL
-    private val scrollRunnable = object : Runnable {
+
+
+    private val missionRunnable = object : Runnable {
 
         override fun run() {
-            startScroll()
+            execMissions()
         }
     }
 
     companion object {
         private var instance: KSUtil? = null
         private var autoScrolling = false
+        private var boxCanClickTime: Long = System.currentTimeMillis()
         fun getInstance(accessibilityService: AccessibilityService): KSUtil {
             if (instance == null) {
                 instance = KSUtil()
@@ -35,8 +39,10 @@ class KSUtil {
             }
             return instance!!
         }
-        fun restartMission(){
+
+        fun restartMission() {
             autoScrolling = false
+            boxCanClickTime = System.currentTimeMillis()
         }
     }
 
@@ -49,9 +55,8 @@ class KSUtil {
     fun execScrollMission() {
         val rootWindow = this.accessibilityService!!.rootInActiveWindow
         if (rootWindow != null && !autoScrolling) {
-            Log.e("------step--------", "11111111111111111111111111111111111111111")
-            handler.removeCallbacks(scrollRunnable)
-            handler.postDelayed(scrollRunnable, 800)
+            handler.removeCallbacks(missionRunnable)
+            handler.postDelayed(missionRunnable, 800)
         }
     }
 
@@ -64,8 +69,12 @@ class KSUtil {
             var nodeList = rootWindow.findAccessibilityNodeInfosByText("说点什么")
             if (nodeList != null && nodeList.size > 0) {//是否是直播页面 30秒滑屏
                 delayMis = SharePrefUtil.getLongValue("liveS")
-                val liveCountDownNode = AccesNodeUtil.findNodeById(rootWindow,1,"com.kuaishou.nebula:id/award_count_down_text")
-                if(liveCountDownNode==null){
+                val liveCountDownNode = AccesNodeUtil.findNodeById(
+                    rootWindow,
+                    1,
+                    "com.kuaishou.nebula:id/award_count_down_text"
+                )
+                if (liveCountDownNode == null) {
                     delayMis = 3
                     accessibilityService!!.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
                 }
@@ -83,15 +92,15 @@ class KSUtil {
         return true
     }
 
-    fun analyLiveWindows() {
+    private fun anaView() {
         val rootWindow = this.accessibilityService!!.rootInActiveWindow
-        AccesNodeUtil.logAllNodes(rootWindow, "#", null)
+        AccesNodeUtil.logAllNodes(rootWindow, "@", null)
     }
 
-    private fun canClickDaily(): Boolean {
+    private fun execDailyMission(): Boolean {
         val rootWindow = this.accessibilityService!!.rootInActiveWindow
         if (rootWindow != null) {
-            val zq_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "去赚钱")
+            val zq_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "日常任务")
             if (zq_node == null) {
                 return false
             }
@@ -103,20 +112,55 @@ class KSUtil {
                 }, 32 * 1000)
                 return true
             } else {
-                val t_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "明日再来")
                 val l_node = AccesNodeUtil.findAllNodesByEqualsText(rootWindow, 1, "看直播")
                 val l_succes_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "今日已成功领取直播奖励金币")
                 if (l_succes_node == null && l_node != null && l_node.size > 0) {
                     l_node[1].performAction(AccessibilityNodeInfo.ACTION_CLICK)
                     return true
                 }
+                // 宝箱node
+                val tb_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "treasurebox")
+                val tb_opend_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "开宝箱奖励")
+                // 宝箱已经点击
+                if (tb_opend_node != null) {
+                    val tb_opend_more_vedio_node =
+                        AccesNodeUtil.findNodeByText(rootWindow, 1, "看精彩视频赚更多")
+                    if (tb_opend_more_vedio_node != null) {
+                        GestureDescHelper.tapNode(
+                            this.accessibilityService!!,
+                            tb_opend_more_vedio_node
+                        )
+                        handler.postDelayed(Runnable {
+                            checkGuangGaoWindow()
+                        }, 32 * 1000)
+                        return true
+                    }
+                }
+                if (tb_node != null) {
+                    val tb_count_down_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "分")
+                    if (tb_count_down_node == null) {
+                        GestureDescHelper.tapNode(this.accessibilityService!!, tb_node)
+                        val tb_t_node = AccesNodeUtil.findNodeByText(tb_node.parent, 1, "明日再来")
+                        if(tb_t_node==null){
+                            return true
+                        }
+                        boxCanClickTime = DateUtil.getTodayEnd().time
+                    } else {
+                        val minute = tb_count_down_node.text.substring(0, 2).toInt()
+                        val second = tb_count_down_node.text.substring(3, 5).toInt()
+                        boxCanClickTime = DateUtil.nowAdd(minute,second).time
+                    }
+                } else {
+                    boxCanClickTime = DateUtil.getTodayEnd().time
+                }
+                // 广告福利结束node
+                val t_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "明日再来")
                 if (t_node != null) {
                     SharePrefUtil.fuLiDailyMissionFinish()
                     accessibilityService!!.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
                     return false
                 }
             }
-            return fuli_node != null
         }
         return false
     }
@@ -125,7 +169,7 @@ class KSUtil {
         val rootWindow = accessibilityService!!.rootInActiveWindow
         val node = AccesNodeUtil.findNodeByText(rootWindow, 1, "继续观看")
         if (node != null) {
-            AccesNodeUtil.tapNode(accessibilityService!!, node)
+            GestureDescHelper.tapNode(accessibilityService!!, node)
             handler.postDelayed(Runnable {
                 checkGuangGaoWindow()
             }, 32 * 1000)
@@ -134,57 +178,40 @@ class KSUtil {
         }
     }
 
-    private fun startScroll() {
-        Log.e("------step--------", "2222222222222222222222222222222222222")
-        val widthHeight = ScreenUtils.GetWidthAndHeight(this.context!!)
+    private fun execMissions() {
         autoScrolling = true
-        var path = Path()
-        path.moveTo((widthHeight.first / 2f), widthHeight.second - 150f);//设置Path的起点
-        path.lineTo((widthHeight.first / 2f), 150f);
-        var builder = GestureDescription.Builder()
-        var stroke = GestureDescription.StrokeDescription(path, 0, 800, false)
-        var callback = object : AccessibilityService.GestureResultCallback() {
-            override fun onCompleted(gestureDescription: GestureDescription) {
-                Log.e("------step--------", "66666666666666 66666666666666666666666666")
-                handler.postDelayed(scrollRunnable, 800)
-            }
-            override fun onCancelled(gestureDescription: GestureDescription) {
-                autoScrolling = false
-                Log.e("------step--------", "7777777777777777777777777777777777777777")
-            }
-        }
         val rootWindow = accessibilityService!!.rootInActiveWindow
         var delay = scrollMissionTime()
-        if (canClickDaily()) {
-            handler.postDelayed(scrollRunnable, 800)
+        if (execDailyMission()) {
+            handler.postDelayed(missionRunnable, 800)
         } else if (canScroll()) {
             handler.postDelayed(Runnable {
-                if (!SharePrefUtil.fuLiDailyMissionIsFinished()) {
+                if (SharePrefUtil.autoDailyMission() && (!SharePrefUtil.fuLiDailyMissionIsFinished() || System.currentTimeMillis() >= boxCanClickTime)) {
+                    Log.e("====================================", "++++++++++++++++")
                     // 应该检测当天是否可以点击福利、广告等按钮
-                    val redNode =
+                    val dailyNode =
                         AccesNodeUtil.findNodeById(
                             rootWindow!!,
                             1,
                             "com.kuaishou.nebula:id/num"
                         )
-                    if (redNode != null) {
-                        AccesNodeUtil.tapNode(accessibilityService!!, redNode)
-                        handler.postDelayed(scrollRunnable, 800)
+                    if (dailyNode != null) {
+                        GestureDescHelper.tapNode(accessibilityService!!, dailyNode)
+                        handler.postDelayed(missionRunnable, 800)
                         return@Runnable
                     }
                 }
-                Log.e("------step--------", "44444444444444444444444444444444444444444444")
-                var dispatchGestureresult = this.accessibilityService!!.dispatchGesture(
-                    builder.addStroke(stroke).build(),
-                    callback,
-                    null
-                )
-                Log.e("-----dispatchGesture----result---------", "" + dispatchGestureresult)
-                Log.e("------step--------", "555555555555555555555555555555555555555555555")
+
+                GestureDescHelper.scrollNode(accessibilityService!!,
+                    { gestureDescription: GestureDescription ->
+                        handler.postDelayed(missionRunnable, 800)
+                    },
+                    {
+                        autoScrolling = false
+                    })
             }, delay)
         } else {
-            handler.postDelayed(scrollRunnable, 1000)
+            handler.postDelayed(missionRunnable, 1000)
         }
-        Log.e("------step--------", "333333333333333333333333333333333333")
     }
 }
