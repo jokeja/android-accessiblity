@@ -35,7 +35,7 @@ class AccessiblityServiceSub : AccessibilityService()  {
 
     override fun onUnbind(intent: Intent?): Boolean {
         Log.e("onUnbind","----------------------")
-        KSUtil.getInstance(this).stop()
+        KSUtil.getInstance(this).pause()
         return true
     }
 
@@ -64,8 +64,17 @@ class AccessiblityServiceSub : AccessibilityService()  {
             val pkgName = event!!.getPackageName().toString()
             var className = event.className
             if(pkgName.contains("com.kuaishou.nebula")&&className.contains("androidx.viewpager.widget.ViewPager")){
+                // 暂停抖音
+                DYUtil.getInstance(this).pause()
+                // 执行快手
+                KSUtil.getInstance(this).init()
                 KSUtil.getInstance(this).execScrollMission()
             } else if(pkgName.contains("com.ss.android.ugc.aweme")){
+                // 暂停快手
+                KSUtil.getInstance(this).pause()
+                // 执行抖音
+                DYUtil.getInstance(this).init()
+                DYUtil.getInstance(this).execScrollMission()
             }else{
             }
             return

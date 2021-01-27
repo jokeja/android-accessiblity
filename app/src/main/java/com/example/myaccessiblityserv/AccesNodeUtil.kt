@@ -22,40 +22,35 @@ class AccesNodeUtil {
                 }
             }
         }
-
         fun findNodeByText(
             parentNode: AccessibilityNodeInfo,
             space: Int,
             text: String?,
             showLog: Boolean = false
         ): AccessibilityNodeInfo? {
-            var result: AccessibilityNodeInfo? = null
-            if (showLog) {
-                Log.e("" + space + "、parentNode==", parentNode.toString())
+            val nodes = findAllNodesByText(parentNode, space, text, showLog)
+            if(nodes.size>0){
+                return nodes[0]
             }
-            for (index in 0..parentNode.childCount - 1) {
-                var child = parentNode.getChild(index)
-                if (child != null) {
-                    if (showLog) {
-                        Log.e("" + space + "、child==", child.toString())
-                    }
-                    if (text != null && child.text != null && child.text.contains(text!!)) {
-                        if (showLog) {
-                            Log.e("" + space + "、parentNode==", parentNode.toString())
-                        }
-                        result = child
-                    } else if (child.childCount > 0) {
-                        result = findNodeByText(child, space + 1, text, showLog)
-                    }
-                }
-                if (result != null) {
-                    return result
-                }
-            }
-            return result
+            return null
         }
-
-        fun findAllNodesByEqualsText(
+        fun findButtonNodeByText(
+            parentNode: AccessibilityNodeInfo,
+            space: Int,
+            text: String?,
+            showLog: Boolean = false): AccessibilityNodeInfo? {
+            val nodes = findAllNodesByText(parentNode, space, text, showLog)
+            if(nodes.size>0){
+                for (index in 0..parentNode.childCount - 1){
+                    val node = nodes[index]
+                    if(node.className=="android.widget.Button"){
+                        return  node
+                    }
+                }
+            }
+            return null
+        }
+        fun findAllNodesByText(
             parentNode: AccessibilityNodeInfo,
             space: Int,
             text: String?,
@@ -71,12 +66,43 @@ class AccesNodeUtil {
                     if (showLog) {
                         Log.e("" + space + "、child==", child.toString())
                     }
-                    if(text==null){
+                    if (text != null && child.text != null && child.text.contains(text!!)) {
                         result.add(child)
-                        if (child.childCount > 0) {
-                            result.addAll(findAllNodesByEqualsText(child, space + 1, text, showLog))
-                        }
-                        continue
+                    } else if (child.childCount > 0) {
+                        result.addAll(findAllNodesByText(child, space + 1, text, showLog))
+                    }
+                }
+            }
+            return result
+        }
+
+        fun findNodeByEqualsText(
+            parentNode: AccessibilityNodeInfo,
+            space: Int,
+            text: String?,
+            showLog: Boolean = false
+        ): AccessibilityNodeInfo? {
+            val nodes = findAllNodesByEqualsText(parentNode, space, text, showLog)
+            if(nodes.size>0){
+                return nodes[0]
+            }
+            return null
+        }
+        fun findAllNodesByEqualsText(
+            parentNode: AccessibilityNodeInfo,
+            space: Int,
+            text: String?,
+            showLog: Boolean = false
+        ): ArrayList<AccessibilityNodeInfo> {
+            var result: ArrayList<AccessibilityNodeInfo> = ArrayList()
+            if (showLog) {
+                Log.e("" + space + "、parentNode==", parentNode.toString())
+            }
+            for (index in 0..parentNode.childCount - 1) {
+                var child = parentNode.getChild(index)
+                if (child != null) {
+                    if (showLog) {
+                        Log.e("" + space + "、child==", child.toString())
                     }
                     if (text != null && child.text != null && child.text == (text!!)) {
                         result.add(child)

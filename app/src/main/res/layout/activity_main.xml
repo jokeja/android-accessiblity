@@ -38,13 +38,13 @@
         app:layout_constraintEnd_toEndOf="@id/video_et"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/video_et" />
+
     <Switch
         android:id="@+id/auto_daily_switch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="自动每日任务"
         android:layout_marginTop="20dp"
-        app:layout_constraintEnd_toEndOf="@+id/live_et"
+        android:text="快手自动每日任务"
         app:layout_constraintStart_toStartOf="@+id/live_et"
         app:layout_constraintTop_toBottomOf="@+id/live_et" />
     <Button

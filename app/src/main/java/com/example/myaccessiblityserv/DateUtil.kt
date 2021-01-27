@@ -10,7 +10,7 @@ class DateUtil {
             val year = currentCalendar.get(Calendar.YEAR)
             val month = currentCalendar.get(Calendar.MONTH)
             val date = currentCalendar.get(Calendar.DATE)
-            val hour = currentCalendar.get(Calendar.HOUR)
+            val hour = currentCalendar.get(Calendar.HOUR_OF_DAY)
             val minute = currentCalendar.get(Calendar.MINUTE)
             val second = currentCalendar.get(Calendar.SECOND)
             return arrayOf(year,month,date,hour,minute,second)
@@ -25,7 +25,8 @@ class DateUtil {
             val today = getYMDHmS(Date())
             val calendar = Calendar.getInstance()
             calendar.set(today[0], today[1], today[2],today[3],today[4]+minute,today[5]+second)
-            return calendar.time
+            val result = calendar.time
+            return result
         }
     }
 }

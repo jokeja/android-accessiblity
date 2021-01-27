@@ -12,7 +12,8 @@ import java.util.*
 class KSUtil {
     private val MissionType_SCROLL = 1
     private val MissionType_FULI = 2
-    private val MissionType_LIVE = 3
+    private val MissionType_LIVE = 4
+    private val MissionType_None = 8
 
 
     private var context: Context = App.instance()
@@ -47,9 +48,11 @@ class KSUtil {
     }
 
     fun init() {
+        this.execMissionType = MissionType_SCROLL
     }
 
-    fun stop() {
+    fun pause() {
+        this.execMissionType = MissionType_None
     }
 
     fun execScrollMission() {
@@ -83,6 +86,7 @@ class KSUtil {
         }
         return delayMis * 1000
     }
+
     // 是否是视频或者直播页面
     private fun canScroll(): Boolean {
         val rootWindow = this.accessibilityService!!.rootInActiveWindow
@@ -93,8 +97,7 @@ class KSUtil {
         return true
     }
 
-    private fun anaView() {
-        val rootWindow = this.accessibilityService!!.rootInActiveWindow
+    private fun anaView(rootWindow: AccessibilityNodeInfo) {
         AccesNodeUtil.logAllNodes(rootWindow, "@", null)
     }
 
@@ -109,7 +112,7 @@ class KSUtil {
                 return false
             }
             // 看广告
-            val fuli_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "福利")
+            val fuli_node = AccesNodeUtil.findButtonNodeByText(rootWindow, 8, "福利")
             if (fuli_node != null) {
                 fuli_node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                 handler.postDelayed(Runnable {
@@ -144,12 +147,12 @@ class KSUtil {
                 }
                 // 未点击宝箱分析宝箱是否可以点击
                 if (tb_node != null) {
-                    val tb_count_down_node = AccesNodeUtil.findNodeByText(rootWindow, 1, "分")
+                    val tb_count_down_node = AccesNodeUtil.findNodeByText(tb_node.parent, 1, "分")
                     if (tb_count_down_node == null) {
                         GestureDescHelper.tapNode(this.accessibilityService!!, tb_node)
                         val tb_t_node = AccesNodeUtil.findNodeByText(tb_node.parent, 1, "明日再来")
                         // 宝箱任务未完成
-                        if(tb_t_node==null){
+                        if (tb_t_node == null) {
                             return true
                         }
                         boxCanClickTime = DateUtil.getTodayEnd().time
@@ -157,7 +160,7 @@ class KSUtil {
                         // 可以点击则分析宝箱的倒计时
                         val minute = tb_count_down_node.text.substring(0, 2).toInt()
                         val second = tb_count_down_node.text.substring(3, 5).toInt()
-                        boxCanClickTime = DateUtil.nowAdd(minute,second).time
+                        boxCanClickTime = DateUtil.nowAdd(minute, second).time
                     }
                 } else {
                     boxCanClickTime = DateUtil.getTodayEnd().time
@@ -174,7 +177,7 @@ class KSUtil {
         return false
     }
 
-//检查广告页面是否可以回退
+    //检查广告页面是否可以回退
     private fun checkGuangGaoWindow() {
         val rootWindow = accessibilityService!!.rootInActiveWindow
         val node = AccesNodeUtil.findNodeByText(rootWindow, 1, "继续观看")
@@ -188,40 +191,42 @@ class KSUtil {
         }
     }
 
+    // 检查执行任务
     private fun execMissions() {
-        autoScrolling = true
-        val rootWindow = accessibilityService!!.rootInActiveWindow
-        if (execDailyMission()) {
-            handler.postDelayed(missionRunnable, 800)
-        } else if (canScroll()) {
-            var delay = scrollMissionTime()
-            handler.postDelayed(Runnable {
-                // 应该检测当天是否可以点击福利、广告等按钮
-                if (SharePrefUtil.autoDailyMission() && (!SharePrefUtil.fuLiDailyMissionIsFinished() || System.currentTimeMillis() >= boxCanClickTime)) {
-                    Log.e("====================================", "++++++++++++++++")
-                    // 获取视频页面的每日任务按钮
-                    val dailyNode =
-                        AccesNodeUtil.findNodeById(
-                            rootWindow!!,
-                            1,
-                            "com.kuaishou.nebula:id/num"
-                        )
-                    if (dailyNode != null) {
-                        GestureDescHelper.tapNode(accessibilityService!!, dailyNode)
-                        handler.postDelayed(missionRunnable, 800)
-                        return@Runnable
+        if (this.execMissionType != MissionType_None) {
+            autoScrolling = true
+            val rootWindow = accessibilityService!!.rootInActiveWindow
+            if (execDailyMission()) {
+                handler.postDelayed(missionRunnable, 800)
+            } else if (canScroll()) {
+                var delay = scrollMissionTime()
+                handler.postDelayed(Runnable {
+                    // 应该检测当天是否可以点击福利、广告等按钮
+                    if (SharePrefUtil.autoDailyMission() && (!SharePrefUtil.fuLiDailyMissionIsFinished() || System.currentTimeMillis() >= boxCanClickTime)) {
+                        // 获取视频页面的每日任务按钮
+                        val dailyNode =
+                            AccesNodeUtil.findNodeById(
+                                rootWindow!!,
+                                1,
+                                "com.kuaishou.nebula:id/num"
+                            )
+                        if (dailyNode != null) {
+                            GestureDescHelper.tapNode(accessibilityService!!, dailyNode)
+                            handler.postDelayed(missionRunnable, 800)
+                            return@Runnable
+                        }
                     }
-                }
-                GestureDescHelper.scrollNode(accessibilityService!!,
-                    { gestureDescription: GestureDescription ->
-                        handler.postDelayed(missionRunnable, 800)
-                    },
-                    {
-                        autoScrolling = false
-                    })
-            }, delay)
-        } else {
-            handler.postDelayed(missionRunnable, 1000)
+                    GestureDescHelper.scrollNode(accessibilityService!!,
+                        { gestureDescription: GestureDescription ->
+                            handler.postDelayed(missionRunnable, 800)
+                        },
+                        {
+                            autoScrolling = false
+                        })
+                }, delay)
+            } else {
+                handler.postDelayed(missionRunnable, 1000)
+            }
         }
     }
 }

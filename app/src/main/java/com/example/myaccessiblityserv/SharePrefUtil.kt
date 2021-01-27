@@ -31,7 +31,6 @@ class SharePrefUtil {
         fun getBooleanValue(key: String): Boolean {
             val sp = App.instance().getSharedPreferences(sharePerName, Context.MODE_PRIVATE)
             val result = sp.getBoolean(key, false)
-            Log.e("-----------" + key + "------------", result.toString())
             return result
         }
 

@@ -22,11 +22,11 @@ class GestureDescHelper {
             var stroke = GestureDescription.StrokeDescription(path, 0, 300, false)
             var callback = object : AccessibilityService.GestureResultCallback() {
                 override fun onCompleted(gestureDescription: GestureDescription) {
-                    Log.e("------step--------", gestureDescription.toString())
+                    Log.e("------tapNode---completed-----", gestureDescription.toString())
                 }
 
                 override fun onCancelled(gestureDescription: GestureDescription) {
-                    Log.e("------step--------", gestureDescription.toString())
+                    Log.e("------tapNode---cancel-----", gestureDescription.toString())
                 }
             }
             var dispatchGestureresult = service.dispatchGesture(
