@@ -41,7 +41,7 @@ class AccesNodeUtil {
             showLog: Boolean = false): AccessibilityNodeInfo? {
             val nodes = findAllNodesByText(parentNode, space, text, showLog)
             if(nodes.size>0){
-                for (index in 0..parentNode.childCount - 1){
+                for (index in 0..nodes.size - 1){
                     val node = nodes[index]
                     if(node.className=="android.widget.Button"){
                         return  node

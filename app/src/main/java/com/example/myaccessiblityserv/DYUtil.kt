@@ -49,6 +49,7 @@ class DYUtil {
     }
 
     fun pause() {
+        autoScrolling = false
         this.execMissionType = MissionType_None
     }
 

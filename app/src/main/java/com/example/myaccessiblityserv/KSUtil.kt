@@ -13,6 +13,7 @@ class KSUtil {
     private val MissionType_SCROLL = 1
     private val MissionType_FULI = 2
     private val MissionType_LIVE = 4
+    private val MissionType_AD = 4 // 广告
     private val MissionType_None = 8
 
 
@@ -52,6 +53,7 @@ class KSUtil {
     }
 
     fun pause() {
+        autoScrolling = false
         this.execMissionType = MissionType_None
     }
 
@@ -78,10 +80,13 @@ class KSUtil {
                     1,
                     "com.kuaishou.nebula:id/award_count_down_text"
                 )
+                this.execMissionType = MissionType_LIVE
                 if (liveCountDownNode == null) {
                     delayMis = 3
                     accessibilityService!!.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
                 }
+            } else {
+                this.execMissionType = MissionType_SCROLL
             }
         }
         return delayMis * 1000
@@ -115,9 +120,7 @@ class KSUtil {
             val fuli_node = AccesNodeUtil.findButtonNodeByText(rootWindow, 8, "福利")
             if (fuli_node != null) {
                 fuli_node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                handler.postDelayed(Runnable {
-                    checkGuangGaoWindow()
-                }, 32 * 1000)
+                this.execMissionType = MissionType_AD
                 return true
             } else {
                 // 看直播
@@ -139,9 +142,7 @@ class KSUtil {
                             this.accessibilityService!!,
                             tb_opend_more_vedio_node
                         )
-                        handler.postDelayed(Runnable {
-                            checkGuangGaoWindow()
-                        }, 32 * 1000)
+                        this.execMissionType = MissionType_AD
                         return true
                     }
                 }
@@ -178,25 +179,46 @@ class KSUtil {
     }
 
     //检查广告页面是否可以回退
-    private fun checkGuangGaoWindow() {
+    private fun checkGuangGaoWindow(): Boolean {
         val rootWindow = accessibilityService!!.rootInActiveWindow
         val node = AccesNodeUtil.findNodeByText(rootWindow, 1, "继续观看")
         if (node != null) {
+            this.execMissionType = MissionType_AD
             GestureDescHelper.tapNode(accessibilityService!!, node)
-            handler.postDelayed(Runnable {
-                checkGuangGaoWindow()
-            }, 32 * 1000)
+            return true
         } else {
-            accessibilityService!!.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+            val adDescNode = AccesNodeUtil.findNodeById(
+                rootWindow!!,
+                1,
+                "com.kuaishou.nebula:id/video_ad_description"
+            )
+            this.anaView(rootWindow)
+            if (adDescNode == null) {
+                return false
+            }
+            val closeNode = AccesNodeUtil.findNodeById(
+                rootWindow!!,
+                1,
+                "com.kuaishou.nebula:id/video_close_icon"
+            )
+            Log.e("----------------",closeNode.toString())
+            if (closeNode != null) {
+                GestureDescHelper.tapNode(accessibilityService!!, closeNode)
+                this.execMissionType = MissionType_AD
+                return true
+            }
+            return false
         }
     }
 
     // 检查执行任务
     private fun execMissions() {
+        val rootWindow = accessibilityService!!.rootInActiveWindow
         if (this.execMissionType != MissionType_None) {
             autoScrolling = true
-            val rootWindow = accessibilityService!!.rootInActiveWindow
-            if (execDailyMission()) {
+            if (this.checkGuangGaoWindow()) {
+                handler.postDelayed(missionRunnable, 1000)
+            } else if (execDailyMission()) {
                 handler.postDelayed(missionRunnable, 800)
             } else if (canScroll()) {
                 var delay = scrollMissionTime()
@@ -210,7 +232,7 @@ class KSUtil {
                                 1,
                                 "com.kuaishou.nebula:id/num"
                             )
-                        if (dailyNode != null) {
+                        if (dailyNode != null && this.execMissionType != MissionType_LIVE) {
                             GestureDescHelper.tapNode(accessibilityService!!, dailyNode)
                             handler.postDelayed(missionRunnable, 800)
                             return@Runnable
