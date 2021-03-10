@@ -75,7 +75,14 @@ class AccessiblityServiceSub : AccessibilityService()  {
                 // 执行抖音
                 DYUtil.getInstance(this).init()
                 DYUtil.getInstance(this).execScrollMission()
-            }else{
+            }else if(pkgName.contains("com.yuncheapp.android.pearl")){
+                // 暂停抖音
+                DYUtil.getInstance(this).pause()
+                // 暂停快手
+                KSUtil.getInstance(this).pause()
+                // 开始快点阅读
+                KDKUtil.getInstance(this).init()
+                KDKUtil.getInstance(this).execScrollMission()
             }
             return
         }

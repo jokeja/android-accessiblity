@@ -3,13 +3,11 @@ package com.example.myaccessiblityserv
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.content.Context
-import android.graphics.Path
 import android.os.Handler
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
-import java.util.*
 
-class KSUtil {
+class KDKUtil {
     private val MissionType_SCROLL = 1
     private val MissionType_FULI = 2
     private val MissionType_LIVE = 4
@@ -31,12 +29,12 @@ class KSUtil {
     }
 
     companion object {
-        private var instance: KSUtil? = null
+        private var instance: KDKUtil? = null
         private var autoScrolling = false
         private var boxCanClickTime: Long = System.currentTimeMillis()
-        fun getInstance(accessibilityService: AccessibilityService): KSUtil {
+        fun getInstance(accessibilityService: AccessibilityService): KDKUtil {
             if (instance == null) {
-                instance = KSUtil()
+                instance = KDKUtil()
                 instance!!.accessibilityService = accessibilityService
             }
             return instance!!
@@ -59,6 +57,7 @@ class KSUtil {
 
     fun execScrollMission() {
         val rootWindow = this.accessibilityService!!.rootInActiveWindow
+//com.yuncheapp.android.pearl:id/channel_tab_item_name
         if (rootWindow != null && !autoScrolling) {
             handler.removeCallbacks(missionRunnable)
             handler.postDelayed(missionRunnable, 800)
@@ -70,39 +69,59 @@ class KSUtil {
         val rootWindow = this.accessibilityService!!.rootInActiveWindow
         var delayMis = 1L
         if (rootWindow != null) {
-            delayMis = SharePrefUtil.getLongValue("videoS")
-            // 查找直播关键字
-            var nodeList = rootWindow.findAccessibilityNodeInfosByText("说点什么")
-            if (nodeList != null && nodeList.size > 0) {//是否是直播页面 30秒滑屏
-                delayMis = SharePrefUtil.getLongValue("liveS")
-                val liveCountDownNode = AccesNodeUtil.findNodeById(
-                    rootWindow,
-                    1,
-                    "com.kuaishou.nebula:id/award_count_down_text"
-                )
-                this.execMissionType = MissionType_LIVE
-                if (liveCountDownNode == null) {
-                    delayMis = 3
-                    accessibilityService!!.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
-                }
-            } else {
-                this.execMissionType = MissionType_SCROLL
-            }
+            delayMis = 8
         }
         return delayMis * 1000
     }
-
-    // 是否是视频或者直播页面
-    private fun canScroll(): Boolean {
+    // 获取选中的主屏幕tab
+    private fun selectedTabNode():AccessibilityNodeInfo?{
         val rootWindow = this.accessibilityService!!.rootInActiveWindow
         if (rootWindow != null) {
-            val result = rootWindow.findAccessibilityNodeInfosByText("分享")
+            // 查找是否有 tabs   selected表示选中的tab
+            val tabs = AccesNodeUtil.findAllNodesByResId(
+                rootWindow!!,
+                1,
+                "com.yuncheapp.android.pearl:id/tab_tv"
+            )
+            if(tabs != null && tabs.size > 0){
+                for (index in 0..tabs.size - 1){
+                    val node = tabs[index]
+                    if(node.isSelected){
+                        return  node
+                    }
+                }
+            }
+        }
+        return null
+    }
+    // 是否APP是主页面多个tabs
+    private fun isMainView():Boolean{
+        //
+        val rootWindow = this.accessibilityService!!.rootInActiveWindow
+        if (rootWindow != null) {
+            // 查找是否有 tabs   selected表示选中的tab
+            val result = AccesNodeUtil.findAllNodesByResId(
+                rootWindow!!,
+                1,
+                "com.yuncheapp.android.pearl:id/tab_tv"
+            )
             return result != null && result.size > 0
         }
-        return true
+        return false
+    }
+    // 是否是新闻页面
+    private fun isNewsView(): Boolean {
+        val rootWindow = this.accessibilityService!!.rootInActiveWindow
+        if (rootWindow != null) {
+            // com.yuncheapp.android.pearl:id/follow_name 文章内容创作者
+            // 正文 文章内容页面关键字
+            val result = rootWindow.findAccessibilityNodeInfosByText("正文")
+            return result != null && result.size > 0
+        }
+        return false
     }
 
-    private fun anaView(rootWindow: AccessibilityNodeInfo) {
+    fun anaView(rootWindow: AccessibilityNodeInfo) {
         AccesNodeUtil.logAllNodes(rootWindow,  null)
     }
 
@@ -216,36 +235,34 @@ class KSUtil {
         val rootWindow = accessibilityService!!.rootInActiveWindow
         if (this.execMissionType != MissionType_None) {
             autoScrolling = true
-            if (this.checkGuangGaoWindow()) {
-                handler.postDelayed(missionRunnable, 1000)
-            } else if (execDailyMission()) {
-                handler.postDelayed(missionRunnable, 800)
-            } else if (canScroll()) {
-                var delay = scrollMissionTime()
-                handler.postDelayed(Runnable {
-                    // 应该检测当天是否可以点击福利、广告等按钮
-                    if (SharePrefUtil.autoDailyMission() && (!SharePrefUtil.fuLiDailyMissionIsFinished() || System.currentTimeMillis() >= boxCanClickTime)) {
-                        // 获取视频页面的每日任务按钮
-                        val dailyNode =
-                            AccesNodeUtil.findNodeById(
-                                rootWindow!!,
-                                1,
-                                "com.kuaishou.nebula:id/num"
-                            )
-                        if (dailyNode != null && this.execMissionType != MissionType_LIVE) {
-                            GestureDescHelper.tapNode(accessibilityService!!, dailyNode)
-                            handler.postDelayed(missionRunnable, 800)
-                            return@Runnable
-                        }
-                    }
+            if (isMainView()) { // 列表页面
+                val selNode = selectedTabNode()
+                Log.e("-------------",selNode.toString())
+                //com.yuncheapp.android.pearl:id/initpanel_video_length
+                if(selNode!=null&&selNode!!.text.contains("视频")){
+                    val widthHeight = ScreenUtils.GetWidthAndHeight(App.instance())
+                    // 获取视频列表的时长
+//                    val videoL = AccesNodeUtil.findAllNodesByResId(rootWindow,1,"com.yuncheapp.android.pearl:id/initpanel_video_length")
                     GestureDescHelper.scrollNode(accessibilityService!!,
                         { gestureDescription: GestureDescription ->
-                            handler.postDelayed(missionRunnable, 800)
+                            handler.postDelayed(missionRunnable, 30*1000)
                         },
                         {
                             autoScrolling = false
-                        })
-                }, delay)
+                        }, GestureDescHelper.GestureConfig(widthHeight.second/3f, 1000)
+                    )
+                }
+            } else if (isNewsView()) {
+//                var delay = scrollMissionTime()
+//                handler.postDelayed(Runnable {
+//                    GestureDescHelper.scrollNode(accessibilityService!!,
+//                        { gestureDescription: GestureDescription ->
+//                            handler.postDelayed(missionRunnable, 800)
+//                        },
+//                        {
+//                            autoScrolling = false
+//                        })
+//                }, delay)
             } else {
                 handler.postDelayed(missionRunnable, 1000)
             }

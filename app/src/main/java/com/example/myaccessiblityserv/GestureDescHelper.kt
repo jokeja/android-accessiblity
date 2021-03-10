@@ -8,6 +8,14 @@ import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 
 class GestureDescHelper {
+    class GestureConfig {
+        var mDuration:Long = 800
+        var mDistance = 150f
+        constructor(distance:Float,duration:Long){
+            this.mDuration = duration
+            this.mDistance = distance
+        }
+    }
     companion object {
         fun tapNode(service: AccessibilityService, parentNode: AccessibilityNodeInfo) {
 
@@ -35,13 +43,14 @@ class GestureDescHelper {
                 null
             )
         }
-        fun scrollNode(service: AccessibilityService, scrollCompleted: ((GestureDescription)->Unit), scrollCancelled: ((GestureDescription)->Unit)):Boolean{
+        fun scrollNode(service: AccessibilityService, scrollCompleted: ((GestureDescription)->Unit), scrollCancelled: ((GestureDescription)->Unit),config:GestureConfig = GestureConfig(150f,800)):Boolean{
             val widthHeight = ScreenUtils.GetWidthAndHeight(App.instance())
+            Log.e("-------scrollNode------",widthHeight.toString())
             var path = Path()
-            path.moveTo((widthHeight.first / 2f), widthHeight.second - 150f);//设置Path的起点
-            path.lineTo((widthHeight.first / 2f), 150f);
+            path.moveTo((widthHeight.first / 2f), widthHeight.second - 80f);//设置Path的起点
+            path.lineTo((widthHeight.first / 2f), widthHeight.second - 80f-config.mDistance);
             var builder = GestureDescription.Builder()
-            var stroke = GestureDescription.StrokeDescription(path, 0, 800, false)
+            var stroke = GestureDescription.StrokeDescription(path, 0, config.mDuration, false)
             var callback = object : AccessibilityService.GestureResultCallback() {
                 override fun onCompleted(gestureDescription: GestureDescription) {
                     scrollCompleted(gestureDescription)

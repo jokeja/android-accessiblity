@@ -96,7 +96,7 @@ class DYUtil {
     }
 
     private fun anaView(rootWindow: AccessibilityNodeInfo) {
-        AccesNodeUtil.logAllNodes(rootWindow, "@", null)
+        AccesNodeUtil.logAllNodes(rootWindow,  null)
     }
 
     // 做每日任务

@@ -11,14 +11,15 @@ class AccesNodeUtil {
     companion object {
         fun logAllNodes(
             parentNode: AccessibilityNodeInfo,
-            space: String,
-            canPerform: ((AccessibilityNodeInfo) -> Boolean)?
+            canPerform: ((AccessibilityNodeInfo) -> Boolean)?,
+            tag:String = ""
         ) {
-            Log.e(space, parentNode.toString())
             for (index in 0..parentNode.childCount - 1) {
                 var child = parentNode.getChild(index)
                 if (child != null) {
-                    logAllNodes(child, space + space, canPerform)
+                    val ntag = Integer.toHexString(parentNode.hashCode())+tag
+                    Log.e(ntag, child.toString())
+                    logAllNodes(child,  canPerform,","+ntag)
                 }
             }
         }
@@ -68,7 +69,8 @@ class AccesNodeUtil {
                     }
                     if (text != null && child.text != null && child.text.contains(text!!)) {
                         result.add(child)
-                    } else if (child.childCount > 0) {
+                    }
+                    if (child.childCount > 0) {
                         result.addAll(findAllNodesByText(child, space + 1, text, showLog))
                     }
                 }
@@ -106,7 +108,8 @@ class AccesNodeUtil {
                     }
                     if (text != null && child.text != null && child.text == (text!!)) {
                         result.add(child)
-                    } else if (child.childCount > 0) {
+                    }
+                    if (child.childCount > 0) {
                         result.addAll(findAllNodesByEqualsText(child, space + 1, text, showLog))
                     }
                 }
@@ -114,6 +117,30 @@ class AccesNodeUtil {
             return result
         }
 
+        fun findAllNodesByResId(parentNode: AccessibilityNodeInfo,
+                             space: Int,
+                             viewId: String?,
+                             showLog: Boolean = false):ArrayList<AccessibilityNodeInfo>{
+            var result: ArrayList<AccessibilityNodeInfo> = ArrayList()
+            if (showLog) {
+                Log.e("" + space + "、parentNode==", parentNode.toString())
+            }
+            for (index in 0..parentNode.childCount - 1) {
+                var child = parentNode.getChild(index)
+                if (child != null) {
+                    if (showLog) {
+                        Log.e("" + space + "、child==", child.toString())
+                    }
+                    if (viewId != null && child.viewIdResourceName != null && child.viewIdResourceName == (viewId!!)) {
+                        result.add(child)
+                    }
+                    if (child.childCount > 0) {
+                        result.addAll(findAllNodesByResId(child, space + 1, viewId, showLog))
+                    }
+                }
+            }
+            return result
+        }
 
         fun findNodeById(
             parentNode: AccessibilityNodeInfo,

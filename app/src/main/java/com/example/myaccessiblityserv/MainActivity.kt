@@ -49,6 +49,7 @@ open class MainActivity : Activity() {
             SharePrefUtil.fuLiDailyMissionBegin()
             KSUtil.restartMission()
             DYUtil.restartMission()
+            KDKUtil.restartMission()
         })
         this.videoET!!.setText(SharePrefUtil.getLongValue("videoS").toString(),TextView.BufferType.NORMAL)
         this.liveET!!.setText(SharePrefUtil.getLongValue("liveS").toString(),TextView.BufferType.NORMAL)
