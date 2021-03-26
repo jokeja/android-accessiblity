@@ -12,17 +12,23 @@ class AccesNodeUtil {
         fun logAllNodes(
             parentNode: AccessibilityNodeInfo,
             canPerform: ((AccessibilityNodeInfo) -> Boolean)?,
-            tag:String = ""
+            tag: String = ""
         ) {
             for (index in 0..parentNode.childCount - 1) {
                 var child = parentNode.getChild(index)
                 if (child != null) {
-                    val ntag = Integer.toHexString(parentNode.hashCode())+tag
-                    Log.e(ntag, child.toString())
-                    logAllNodes(child,  canPerform,","+ntag)
+                    val ntag = Integer.toHexString(parentNode.hashCode()) + tag
+                    var outrect = Rect()
+                    child.getBoundsInScreen(outrect)
+                    Log.e(
+                        ntag,
+                        "hashCode:${Integer.toHexString(child.hashCode())},text:${child.text},viewIdRes:${child.viewIdResourceName},BoundsInScreen${outrect},packageName:${child.packageName},className:${child.className}"
+                    )
+                    logAllNodes(child, canPerform, "," + ntag)
                 }
             }
         }
+
         fun findNodeByText(
             parentNode: AccessibilityNodeInfo,
             space: Int,
@@ -30,31 +36,34 @@ class AccesNodeUtil {
             showLog: Boolean = false
         ): AccessibilityNodeInfo? {
             val nodes = findAllNodesByText(parentNode, space, text, showLog)
-            if(nodes.size>0){
+            if (nodes.size > 0) {
                 return nodes[0]
             }
             return null
         }
+
         fun findButtonNodeByText(
             parentNode: AccessibilityNodeInfo,
             space: Int,
             text: String?,
-            showLog: Boolean = false): AccessibilityNodeInfo? {
+            showLog: Boolean = false
+        ): AccessibilityNodeInfo? {
             val nodes = findAllNodesByText(parentNode, space, text, showLog)
-            if(nodes.size>0){
-                for (index in 0..nodes.size - 1){
+            if (nodes.size > 0) {
+                for (index in 0..nodes.size - 1) {
                     val node = nodes[index]
-                    if(node.className=="android.widget.Button"){
-                        return  node
+                    if (node.className == "android.widget.Button") {
+                        return node
                     }
                 }
             }
             return null
         }
+
         fun findAllNodesByText(
             parentNode: AccessibilityNodeInfo,
             space: Int,
-            text: String?,
+            text: String? = "",
             showLog: Boolean = false
         ): ArrayList<AccessibilityNodeInfo> {
             var result: ArrayList<AccessibilityNodeInfo> = ArrayList()
@@ -85,11 +94,12 @@ class AccesNodeUtil {
             showLog: Boolean = false
         ): AccessibilityNodeInfo? {
             val nodes = findAllNodesByEqualsText(parentNode, space, text, showLog)
-            if(nodes.size>0){
+            if (nodes.size > 0) {
                 return nodes[0]
             }
             return null
         }
+
         fun findAllNodesByEqualsText(
             parentNode: AccessibilityNodeInfo,
             space: Int,
@@ -106,7 +116,7 @@ class AccesNodeUtil {
                     if (showLog) {
                         Log.e("" + space + "、child==", child.toString())
                     }
-                    if (text != null && child.text != null && child.text == (text!!)) {
+                    if (text != null && child.text != null && child.text.toString() == (text!!)) {
                         result.add(child)
                     }
                     if (child.childCount > 0) {
@@ -117,10 +127,12 @@ class AccesNodeUtil {
             return result
         }
 
-        fun findAllNodesByResId(parentNode: AccessibilityNodeInfo,
-                             space: Int,
-                             viewId: String?,
-                             showLog: Boolean = false):ArrayList<AccessibilityNodeInfo>{
+        fun findAllNodesByResId(
+            parentNode: AccessibilityNodeInfo,
+            space: Int,
+            viewId: String?,
+            showLog: Boolean = false
+        ): ArrayList<AccessibilityNodeInfo> {
             var result: ArrayList<AccessibilityNodeInfo> = ArrayList()
             if (showLog) {
                 Log.e("" + space + "、parentNode==", parentNode.toString())

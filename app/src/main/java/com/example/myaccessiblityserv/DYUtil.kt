@@ -3,6 +3,7 @@ package com.example.myaccessiblityserv
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.content.Context
+import android.graphics.PointF
 import android.os.Handler
 import android.view.accessibility.AccessibilityNodeInfo
 
@@ -96,7 +97,7 @@ class DYUtil {
     }
 
     private fun anaView(rootWindow: AccessibilityNodeInfo) {
-        AccesNodeUtil.logAllNodes(rootWindow,  null)
+        AccesNodeUtil.logAllNodes(rootWindow, null)
     }
 
     // 做每日任务
@@ -104,6 +105,7 @@ class DYUtil {
     private fun execDailyMission(): Boolean {
         return false
     }
+
     // 检查执行任务
     private fun execMissions() {
         if (this.execMissionType != MissionType_None) {
@@ -114,13 +116,19 @@ class DYUtil {
             } else if (canScroll()) {
                 var delay = scrollMissionTime()
                 handler.postDelayed(Runnable {
-                    GestureDescHelper.scrollNode(accessibilityService!!,
+                    val widthHeight = ScreenUtils.GetWidthAndHeight(App.instance())
+                    val gesConf = GestureDescHelper.GestureConfig()
+                    gesConf.beginP = PointF(widthHeight.first / 2f, widthHeight.second - 100f)
+                    gesConf.endP = PointF(widthHeight.first / 2f, widthHeight.second / 2f)
+                    GestureDescHelper.scrollNode(
+                        accessibilityService!!,
                         { gestureDescription: GestureDescription ->
                             handler.postDelayed(missionRunnable, 800)
                         },
                         {
                             autoScrolling = false
-                        })
+                        }, gesConf
+                    )
                 }, delay)
             } else {
                 handler.postDelayed(missionRunnable, 1000)

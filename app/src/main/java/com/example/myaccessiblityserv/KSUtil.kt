@@ -116,6 +116,12 @@ class KSUtil {
             if (zq_node == null) {
                 return false
             }
+            this.anaView(rootWindow)
+            val sign_dao_node = AccesNodeUtil.findButtonNodeByText(rootWindow, 8, "去签到")
+            if(sign_dao_node!=null){
+                sign_dao_node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                return true
+            }
             // 看广告
             val fuli_node = AccesNodeUtil.findButtonNodeByText(rootWindow, 8, "福利")
             if (fuli_node != null) {
@@ -192,7 +198,6 @@ class KSUtil {
                 1,
                 "com.kuaishou.nebula:id/video_ad_description"
             )
-            this.anaView(rootWindow)
             if (adDescNode == null) {
                 return false
             }
@@ -201,7 +206,6 @@ class KSUtil {
                 1,
                 "com.kuaishou.nebula:id/video_close_icon"
             )
-            Log.e("----------------",closeNode.toString())
             if (closeNode != null) {
                 GestureDescHelper.tapNode(accessibilityService!!, closeNode)
                 this.execMissionType = MissionType_AD
