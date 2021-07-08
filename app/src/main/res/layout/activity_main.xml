@@ -16,6 +16,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <Switch
+        android:id="@+id/auto_daily_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="36dp"
+        android:layout_marginTop="16dp"
+        android:text="快手自动每日任务"
+        app:layout_constraintStart_toEndOf="@id/set_button"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <EditText
         android:id="@+id/video_et"
         android:layout_width="120dp"
@@ -38,29 +48,22 @@
         app:layout_constraintEnd_toEndOf="@id/video_et"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/video_et" />
-
-    <Switch
-        android:id="@+id/auto_daily_switch"
-        android:layout_width="wrap_content"
+    <EditText
+        android:id="@+id/bxKey_et"
+        android:layout_width="120dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="快手自动每日任务"
-        app:layout_constraintStart_toStartOf="@+id/live_et"
-        app:layout_constraintTop_toBottomOf="@+id/live_et" />
+        android:layout_marginTop="35dp"
+        android:layout_marginStart="16dp"
+        android:hint="宝箱关键字"
+        app:layout_constraintEnd_toEndOf="@id/video_et"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/live_et" />
     <Button
         android:id="@+id/ks_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="重置滑屏"
         app:layout_constraintBottom_toBottomOf="@id/live_et"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-    <Button
-        android:id="@+id/confirm_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="保存设置"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

@@ -60,6 +60,12 @@ class AccessiblityServiceSub : AccessibilityService()  {
 //        if(this.rootInActiveWindow!=null){
 //            AccesNodeUtil.logAllNodes(this.rootInActiveWindow,"=",null)
 //        }
+        if(event!!.eventType===AccessibilityEvent.TYPE_VIEW_CLICKED){
+            if(event!!.source!=null){
+                Log.e("--------------","${event!!.source.toString()}")
+                AccesNodeUtil.anaView(event!!.source.parent,"TYPE_VIEW_CLICKED")
+            }
+        }
         if(event!!.eventType===AccessibilityEvent.TYPE_VIEW_SCROLLED){
             val pkgName = event!!.getPackageName().toString()
             var className = event.className

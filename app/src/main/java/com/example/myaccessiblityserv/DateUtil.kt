@@ -21,7 +21,6 @@ class DateUtil {
             val today = getYMDHmS(Date())
             val calendar = Calendar.getInstance()
             calendar.set(today[0], today[1], today[2],23,59,59)
-            Log.e("------getTodayEnd------",calendar.time.time.toString())
             return calendar.time
         }
 

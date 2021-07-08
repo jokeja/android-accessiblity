@@ -44,22 +44,19 @@ class SharePrefUtil {
             val result = sp.edit().commit()
         }
 
-        fun fuLiDailyMissionIsFinished(): Boolean {
-            val format = SimpleDateFormat("yyyy-MM-dd")
-            val date = format.format(Date()) + "_FULI_MISSION"
-            return this.getBooleanValue(date)
+        fun getStringValue(key: String): String? {
+            val sp = App.instance().getSharedPreferences(sharePerName, Context.MODE_PRIVATE)
+            val result = sp.getString(key,null)
+            if(result==null){
+                return ""
+            }
+            return result
         }
 
-        fun fuLiDailyMissionFinish() {
-            val format = SimpleDateFormat("yyyy-MM-dd")
-            val date = format.format(Date()) + "_FULI_MISSION"
-            this.putBooleanValue(date, true)
-        }
-
-        fun fuLiDailyMissionBegin() {
-            val format = SimpleDateFormat("yyyy-MM-dd")
-            val date = format.format(Date()) + "_FULI_MISSION"
-            this.putBooleanValue(date, false)
+        fun putStringValue(key: String, value: String) {
+            val sp = App.instance().getSharedPreferences(sharePerName, Context.MODE_PRIVATE)
+            sp.edit().putString(key, value).apply()
+            val result = sp.edit().commit()
         }
 
         fun autoDailyMission(): Boolean {

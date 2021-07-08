@@ -42,13 +42,13 @@ class AccesNodeUtil {
             return null
         }
 
-        fun findButtonNodeByText(
+        fun findButtonNodeByEqualsText(
             parentNode: AccessibilityNodeInfo,
             space: Int,
             text: String?,
             showLog: Boolean = false
         ): AccessibilityNodeInfo? {
-            val nodes = findAllNodesByText(parentNode, space, text, showLog)
+            val nodes = findAllNodesByEqualsText(parentNode, space, text, showLog)
             if (nodes.size > 0) {
                 for (index in 0..nodes.size - 1) {
                     val node = nodes[index]
@@ -184,6 +184,22 @@ class AccesNodeUtil {
                 }
             }
             return result
+        }
+
+        fun findNodeByResIdThenText(parentNode: AccessibilityNodeInfo,viewId: String?,text: String?):AccessibilityNodeInfo?{
+            val result = findAllNodesByResId(parentNode,1,viewId)
+            for (node in result){
+                if(node.text!=null&&node.text.toString().equals(text)){
+                    return node
+                }
+            }
+            return null
+        }
+        fun anaView(rootWindow: AccessibilityNodeInfo,tag:String="") {
+            Log.e("---AccesNodeUtil--------${tag}----", "----------------------")
+            //80007c3e
+            Log.e("---AccesNodeUtil--------rootWindow----", rootWindow.toString())
+            AccesNodeUtil.logAllNodes(rootWindow, null)
         }
     }
 }

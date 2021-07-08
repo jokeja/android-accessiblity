@@ -7,8 +7,8 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.os.Handler
 import android.util.Log
+import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import java.util.*
 
 class KDKUtil {
     private val MissionType_SCROLL = 1
@@ -107,7 +107,7 @@ class KDKUtil {
                     val node = tabs[index]
                     if (node.text == text) {
                         if (!node.isSelected) {
-                            GestureDescHelper.tapNode(this.accessibilityService!!, node)
+                            GestureDescHelper.tapNodeCenter(this.accessibilityService!!, node)
                             Thread.sleep(1000)
                         }
                         return node
@@ -145,7 +145,7 @@ class KDKUtil {
             val curMillis = System.currentTimeMillis()
 
             if (curMillis >= KDKUtil.boxClickMissionTime || curMillis >= luckyZPMissionTime || curMillis >= jbxsMissionTime || curMillis >= hbyMissionTime) {
-                GestureDescHelper.tapNode(this.accessibilityService!!, result)
+                GestureDescHelper.tapNodeCenter(this.accessibilityService!!, result)
             } else {
                 return false
             }
@@ -177,20 +177,15 @@ class KDKUtil {
                     1,
                     "com.yuncheapp.android.pearl:id/close"
                 )
-                GestureDescHelper.tapNode(this.accessibilityService!!, closeBtn)
+                if(closeBtn!=null){
+                    GestureDescHelper.tapNodeCenter(this.accessibilityService!!, closeBtn)
+                }
             } else {
-                GestureDescHelper.tapNode(this.accessibilityService!!, result)
+                GestureDescHelper.tapNodeCenter(this.accessibilityService!!, result)
             }
             return opened != null && result != null
         }
         return false
-    }
-
-    fun anaView(rootWindow: AccessibilityNodeInfo,tag:String="") {
-        Log.e("---KDKUtil----analyzeview----${tag}----", "----------------------")
-        //80007c3e
-        Log.e("---KDKUtil----analyzeview----rootWindow----", rootWindow.toString())
-        AccesNodeUtil.logAllNodes(rootWindow, null)
     }
 
     //检查广告页面是否可以回退
@@ -199,10 +194,16 @@ class KDKUtil {
         if (rootWindow == null) {
             return false
         }
+        val abandonNode = AccesNodeUtil.findNodeById(rootWindow,1,"com.yuncheapp.android.pearl:id/award_video_close_dialog_abandon_button")
+        if(abandonNode!=null){
+            this.execMissionType = MissionType_AD
+            GestureDescHelper.tapNodeCenter(accessibilityService!!, abandonNode)
+            return true
+        }
         val node = AccesNodeUtil.findNodeByText(rootWindow, 1, "继续观看")
         if (node != null) {
             this.execMissionType = MissionType_AD
-            GestureDescHelper.tapNode(accessibilityService!!, node)
+            GestureDescHelper.tapNodeCenter(accessibilityService!!, node)
             return true
         } else {
             val adDescNode = AccesNodeUtil.findNodeById(
@@ -217,7 +218,7 @@ class KDKUtil {
                     "com.yuncheapp.android.pearl:id/video_close_icon"
                 )
                 if (closeNode != null) {
-                    GestureDescHelper.tapNode(accessibilityService!!, closeNode)
+                    GestureDescHelper.tapNodeCenter(accessibilityService!!, closeNode)
                     return true
                 }
                 return true
@@ -233,15 +234,14 @@ class KDKUtil {
             1,
             "com.yuncheapp.android.pearl:id/time_reward_root"
         )
-
         if (bxNode != null) {
             var countDownNode = AccesNodeUtil.findNodeById(
                 rootWindow,
                 1,
-                "com.yuncheapp.android.pearl:id/pendant_text"
+                "com.yuncheapp.android.pearl:id/pendant_text_double_coin"
             )
             if (countDownNode == null) {
-                GestureDescHelper.tapNode(this.accessibilityService!!, bxNode)
+                GestureDescHelper.tapNodeCenter(this.accessibilityService!!, bxNode)
                 return true
             } else {
                 if (countDownNode.text.contains("已达上限")) {
@@ -264,7 +264,7 @@ class KDKUtil {
             if (adMiNode != null) {
                 val zhuanqianNode = AccesNodeUtil.findNodeByText(adMiNode.parent, 1, "去赚钱")
                 if (zhuanqianNode != null) {
-                    GestureDescHelper.tapNode(accessibilityService!!, zhuanqianNode)
+                    GestureDescHelper.tapNodeCenter(accessibilityService!!, zhuanqianNode.parent)
                     return true
                 }else{
                     val jbNextTimeNode = AccesNodeUtil.findNodeByText(adMiNode.parent,1,":")
@@ -297,7 +297,7 @@ class KDKUtil {
     private fun zhuanPanMission(): Boolean {
         val rootWindow = accessibilityService!!.rootInActiveWindow
         if (rootWindow != null && System.currentTimeMillis() >= luckyZPMissionTime) {
-            val zpNode = AccesNodeUtil.findNodeByText(rootWindow, 1, "超级大转盘")
+            val zpNode = AccesNodeUtil.findNodeByResIdThenText(rootWindow,"com.yuncheapp.android.pearl:id/tv_menu_item","超级大转盘")
             if (zpNode == null) {
                 val widthHeight = ScreenUtils.GetWidthAndHeight(App.instance())
                 val gesConf = GestureDescHelper.GestureConfig()
@@ -312,13 +312,8 @@ class KDKUtil {
                 )
                 return true
             } else {
-                val zjbNode = AccesNodeUtil.findNodeByText(zpNode.parent, 1, "赚金币")
-                if (zjbNode != null) {
-                    GestureDescHelper.tapNode(accessibilityService!!, zjbNode)
-                    return true
-                } else {
-                    luckyZPMissionTime = DateUtil.getTodayEnd().time
-                }
+                GestureDescHelper.tapNodeCenter(accessibilityService!!, zpNode)
+                return true
             }
         }
         return false
@@ -330,27 +325,34 @@ class KDKUtil {
         if (rootWindow != null) {
             val dzp = AccesNodeUtil.findNodeByEqualsText(rootWindow, 1, "幸运大转盘")
             if (dzp != null) {
+                Thread.sleep(2000)
                 // 后可继续
                 val hkjx = AccesNodeUtil.findNodeByEqualsText(rootWindow, 1, "后可继续")
                 if (hkjx != null) {
                     val zpNextTimeNode = AccesNodeUtil.findNodeByText(hkjx.parent,1,":")
+                    Log.e("=================",zpNextTimeNode.toString())
                     if(zpNextTimeNode!=null){
                         luckyZPMissionTime =  System.currentTimeMillis() + DateUtil.getSecondByString(zpNextTimeNode.text) * 1000
                     }
                     accessibilityService!!.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
-                    return false
+                    return true
                 }
                 // 继续抽奖
                 val gxnNode = AccesNodeUtil.findNodeByText(rootWindow, 1, "恭喜您获得")
                 val jxcNode = AccesNodeUtil.findNodeByText(rootWindow, 1, "继续抽奖")
+                var kspfbNode = AccesNodeUtil.findNodeByText(rootWindow,1,"看视频金币翻倍")
+                if(kspfbNode != null){
+                    GestureDescHelper.tapNodeCenter(accessibilityService!!, kspfbNode)
+                    return true
+                }
                 if (gxnNode != null && jxcNode != null) {
                     var children = AccesNodeUtil.findAllNodesByText(gxnNode.parent, 1)
-                    GestureDescHelper.tapNode(accessibilityService!!, children[2])
+                    GestureDescHelper.tapNodeCenter(accessibilityService!!, children[2])
                     return true
                 }
                 val syNode = AccesNodeUtil.findNodeByText(rootWindow, 1, "今日剩余")
                 val gzNode = AccesNodeUtil.findNodeByText(rootWindow, 1, "每天有20次抽奖机会")
-                if (syNode != null) {
+                if (syNode != null&&gzNode!=null) {
                     if (syNode.text.toString() == "今日剩余 : 0次") {
                         luckyZPMissionTime = DateUtil.getTodayEnd().time
                         accessibilityService!!.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
@@ -358,7 +360,7 @@ class KDKUtil {
                     }
                     var gzRect = Rect()
                     var syRect = Rect()
-                    gzNode!!.getBoundsInScreen(gzRect)
+                    gzNode.getBoundsInScreen(gzRect)
                     syNode.getBoundsInScreen(syRect)
                     var midY = syRect.bottom + (gzRect.top - syRect.bottom) / 2f
                     val widthHeight = ScreenUtils.GetWidthAndHeight(App.instance())
@@ -376,8 +378,13 @@ class KDKUtil {
     private fun hbyMission():Boolean{
         val rootWindow = accessibilityService!!.rootInActiveWindow
         if (rootWindow != null && System.currentTimeMillis() >= hbyMissionTime) {
-            val honaboyu = AccesNodeUtil.findNodeByText(rootWindow, 1, "红包雨")
-            if (honaboyu == null||honaboyu.viewIdResourceName!="com.yuncheapp.android.pearl:id/tv_menu_item") {
+            val honaboyu = AccesNodeUtil.findNodeByResIdThenText(rootWindow,"com.yuncheapp.android.pearl:id/tv_menu_item","红包雨")
+            if (honaboyu == null) {
+                val zjbNode = AccesNodeUtil.findNodeByResIdThenText(rootWindow,"com.yuncheapp.android.pearl:id/total_text","总金币")
+                if(zjbNode!=null){
+                    hbyMissionTime = DateUtil.getTodayEnd().time
+                    return false
+                }
                 val widthHeight = ScreenUtils.GetWidthAndHeight(App.instance())
                 val gesConf = GestureDescHelper.GestureConfig()
                 gesConf.beginP = PointF(widthHeight.first / 2f, widthHeight.second / 2f)
@@ -392,7 +399,7 @@ class KDKUtil {
                 Thread.sleep(2000)
                 return true
             } else {
-                GestureDescHelper.tapNode(accessibilityService!!, honaboyu)
+                GestureDescHelper.tapNodeCenter(accessibilityService!!, honaboyu)
                 return true
             }
         }
@@ -408,9 +415,14 @@ class KDKUtil {
             // 今日剩余: 5次
 //            val hbygzNode = AccesNodeUtil.findNodeByEqualsText(rootWindow, 1, "活动规则")
             if (cqhbyNode != null) {
+                val gksp = AccesNodeUtil.findNodeByText(rootWindow, 1, "观看视频领金币")
+                if(gksp!=null){
+                    GestureDescHelper.tapNodeCenter(accessibilityService!!,gksp)
+                    return true
+                }
                 val ljksNode = AccesNodeUtil.findNodeByEqualsText(rootWindow, 1, "立即开始")
                 if(ljksNode!=null){
-                    GestureDescHelper.tapNode(accessibilityService!!,ljksNode)
+                    GestureDescHelper.tapNodeCenter(accessibilityService!!,ljksNode)
                 }else{
                     val mrzlNode = AccesNodeUtil.findNodeByEqualsText(rootWindow, 1, "明日再来")
                     if(mrzlNode!=null){
@@ -542,7 +554,6 @@ class KDKUtil {
                 }
                 handler.postDelayed(missionRunnable, 1000)
             } else {
-//                anaView(rootWindow)
                 handler.postDelayed(missionRunnable, 3000)
             }
         }

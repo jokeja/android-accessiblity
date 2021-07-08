@@ -3,7 +3,6 @@ package com.example.myaccessiblityserv
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.graphics.Path
-import android.graphics.Point
 import android.graphics.PointF
 import android.graphics.Rect
 import android.os.Handler
@@ -57,8 +56,7 @@ class GestureDescHelper {
             for (wi in 0..blockNum-1){
                 for (hi in 0..blockNum-1){
                     tapPoint(service,blocks!![wi*blockNum+hi])
-                    Log.e("================",blocks!![wi*blockNum+hi].toString())
-                    Thread.sleep(5)
+                    Thread.sleep(2)
                 }
             }
         }
@@ -84,9 +82,11 @@ class GestureDescHelper {
             )
         }
 
-        fun tapNode(service: AccessibilityService, parentNode: AccessibilityNodeInfo?) {
+        fun tapNodeCenter(service: AccessibilityService, parentNode: AccessibilityNodeInfo?) {
             if (parentNode == null) {
-                Log.e("------tapNode-----", "error parentNode is null")
+                Log.e("------tapNode---error parentNode is null--", Log.getStackTraceString(
+                    Throwable()
+                ))
                 return
             }
             var path = Path()
@@ -100,11 +100,11 @@ class GestureDescHelper {
             var stroke = GestureDescription.StrokeDescription(path, 0, 300, false)
             var callback = object : AccessibilityService.GestureResultCallback() {
                 override fun onCompleted(gestureDescription: GestureDescription) {
-                    Log.e("------tapNode---completed-----", gestureDescription.toString())
+                    Log.e("------tapNode---completed-----", parentNode.toString())
                 }
 
                 override fun onCancelled(gestureDescription: GestureDescription) {
-                    Log.e("------tapNode---cancel-----", gestureDescription.toString())
+                    Log.e("------tapNode---cancel-----", parentNode.toString())
                 }
             }
             var dispatchGestureresult = service.dispatchGesture(
@@ -113,7 +113,12 @@ class GestureDescHelper {
                 null
             )
         }
-
+        fun performClick(service: AccessibilityService, node: AccessibilityNodeInfo?){
+            if(node!=null){
+                Log.e("--------performClick--------",node.toString())
+                node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+            }
+        }
         fun scrollNode(
             service: AccessibilityService,
             scrollCompleted: ((GestureDescription) -> Unit)?,
